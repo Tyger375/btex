@@ -1,0 +1,80 @@
+@class article\
+
+@use ./ciao/\
+
+@title Hi\
+@author Tyger375\
+@date\
+
+@document {
+    @maketitle\
+    @tableofcontents\
+
+    @paragraph (label=ciao) TEST\
+    @section (label=sec:ciao) test\
+    @subsection (label=sec:test) test3\
+    Ciao come stai; io sto bene\\
+    ok, **stocazzo**\\
+    @href https://youtube.com nome\
+    @ref sec:ciao\
+    _ciao_
+
+    @center {
+        Ciao
+    }
+
+    @code (language=c++, label=lst:nigga) ./main.txt\
+
+    @section test2\
+
+    @graphic (width=0.75$$textwidth$$) name\
+
+    @newpage\
+
+    heheheha
+
+    @list {
+        @item {
+            Test
+        }
+    }
+
+    @math {\\
+        @sqrt {
+            x^2 - 1
+        } * 2\\
+        @split {
+            x & = 2 \\
+            & = 4
+        } \\
+        @binom {
+            {
+                @sqrt {
+                    x - 2
+                }
+            }
+            {
+                test
+            }
+        }
+        @split {
+            @frac {
+                {
+                    @sqrt {
+                        x - 2
+                    }
+                }
+                {
+                    test
+                }
+            }
+        }
+    }
+
+    @figure (H) {
+        @graphic name\
+        @centering\
+        @caption The tunneling problem\
+        @label fig:tunneling\
+    }
+}

@@ -452,7 +452,7 @@ def doWork(_from: str, to: str, toPdf: bool, program: str):
     if toPdf:
         buildPdf(_from, to, program)
 
-if __name__ == "__main__":
+def cli():
     parser = argparse.ArgumentParser("btex")
     
     parser.add_argument("filename", help="An integer will be increased by 1 and printed.", type=str)
@@ -489,3 +489,6 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             observer.stop()
         observer.join()
+
+if __name__ == "__main__":
+    cli

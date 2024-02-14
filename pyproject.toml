@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "btex"
+version = "0.1.2"
+description = "A latex's superset"
+authors = ["Tyger375 <edoardo.takanen@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+btex = 'btex:cli'
+
+[tool.poetry.dependencies]
+python = "^3.9"
+watchdog = "^4.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

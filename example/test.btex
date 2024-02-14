@@ -1,7 +1,5 @@
 @class article\
 
-@use ./ciao/\
-
 @title Hi\
 @author Tyger375\
 @date\
@@ -10,24 +8,21 @@
     @maketitle\
     @tableofcontents\
 
-    @paragraph (label=ciao) TEST\
-    @section (label=sec:ciao) test\
+    @paragraph (label=hello) TEST\
+    @section (label=sec:hello) test\
     @subsection (label=sec:test) test3\
-    Ciao come stai; io sto bene\\
-    ok, **stocazzo**\\
-    @href https://youtube.com nome\
-    @ref sec:ciao\
+    Hi how are you? I'm fine\\
+    ok, **let's gooo**\\
+    *heheheha*
+    @href https://youtube.com a youtube link\
+    @ref sec:hello\
     _ciao_
 
     @center {
-        Ciao
+        Hi
     }
 
-    @code (language=c++, label=lst:nigga) ./main.txt\
-
     @section test2\
-
-    @graphic (width=0.75$$textwidth$$) name\
 
     @newpage\
 
@@ -42,11 +37,10 @@
     @math {\\
         @sqrt {
             x^2 - 1
-        } * 2\\
+        } * 2
         @split {
-            x & = 2 \\
-            & = 4
-        } \\
+            
+        }
         @binom {
             {
                 @sqrt {
@@ -57,8 +51,7 @@
                 test
             }
         }
-        @split {
-            @frac {
+        @frac {
                 {
                     @sqrt {
                         x - 2
@@ -68,13 +61,5 @@
                     test
                 }
             }
-        }
-    }
-
-    @figure (H) {
-        @graphic name\
-        @centering\
-        @caption The tunneling problem\
-        @label fig:tunneling\
     }
 }

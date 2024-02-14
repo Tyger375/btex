@@ -1,9 +1,6 @@
-import re
-
-global text
-
-with open("./test.btex") as f:
-    text = f.read()
+from watchdog.observers.polling import PollingObserver as Observer
+from watchdog.events import LoggingEventHandler, FileSystemEvent
+import re, argparse, time, os
 
 def eval_main_scope(c, n, b, format) -> (bool, list[bool, bool, bool, str], str):
     if format[0]:
@@ -97,9 +94,6 @@ def eval_statement(line: str):
     statement = [item for item in t.split(" ") if item != ""]
     return statement
 
-
-split = resolve_scope(f"{{{text}}}")
-
 def documentclass(_, args):
     l = len(args)
     global docclass
@@ -161,14 +155,14 @@ def item(_, args):
         t += exec_line(s)
     return f"\\item {t[0:-1]}"
 
-def binom(_, args):
+def binom(name, args):
     tryImport("amsmath")
     string = ' '.join(eval_statement(' '.join(args)))
     
     scope = resolve_scope(string.replace("\\", ""))
 
     if len(scope) != 2:
-        print("Error")
+        print(f"Error in {name}")
         exit(1)
 
     first, second = scope
@@ -183,13 +177,13 @@ def binom(_, args):
         
     return f"\\binom{{{f}}}{{{s}}}"
 
-def frac(_, args):
+def frac(name, args):
     string = ' '.join(eval_statement(' '.join(args)))
     
     scope = resolve_scope(string.replace("\\", ""))
 
     if len(scope) != 2:
-        print("Error")
+        print(f"Error in {name}")
         exit(1)
 
     first, second = scope
@@ -244,11 +238,12 @@ def figure(_, args):
     
     return f"\\begin{{figure}}{p}\n{c}\n\\end{{figure}}"
 
-def href(_, args):
-    if len(args) != 2:
-        print("Error")
+def href(name, args):
+    if len(args) < 2:
+        print(f"Error in {name}")
         exit(1)
-    first, second = args
+    first, *second = args
+    second = " ".join(second)
     tryImport("hyperref")
     return f"\\href{{{first}}}{{{second}}}"
 
@@ -415,13 +410,82 @@ def eval_imports():
         final += label
     return final
 
-compiled = ""
+def read(f: str):
+    global text
 
-for i in split:
-    compiled += exec_line(i)
-    compiled += "\n"
+    with open(f) as f:
+        text = f.read()
 
-compiled = docclass + "\n" + eval_imports() + compiled
+    return text
 
-with open("./out.tex", "w") as f:
-    f.write(compiled)
+def compile(text: str, to: str):
+    split = resolve_scope(f"{{{text}}}")
+
+    compiled = ""
+
+    for i in split:
+        compiled += exec_line(i)
+        compiled += "\n"
+
+    compiled = docclass + "\n" + eval_imports() + compiled
+
+    with open(to, "w") as f:
+        f.write(compiled)
+
+programs = {
+    "pdflatex": lambda include_dir, out_dir: f"pdflatex -file-line-error -interaction=nonstopmode -synctex=1 -output-format=pdf -quiet -include-directory={include_dir} -output-directory={out_dir}"
+}
+
+def buildPdf(_from: str, file: str, program: str):
+    if not program in programs:
+        print(f"Invalid program for building pdf: {program}")
+        exit(1)
+    include = os.path.abspath(os.path.dirname(_from))
+    out = os.path.abspath(os.path.dirname(file))
+    cmd = programs[program](include, out)
+    os.system(f"{cmd} {file}")
+    print("Built pdf")
+
+def doWork(_from: str, to: str, toPdf: bool, program: str):
+    f = read(_from)
+    compile(f, to)
+    if toPdf:
+        buildPdf(_from, to, program)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("btex")
+    
+    parser.add_argument("filename", help="An integer will be increased by 1 and printed.", type=str)
+    parser.add_argument("--to", help="file name output", default="out.tex", type=str)
+    parser.add_argument("--watch", help="Watch file changes", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--pdf", help="Auto build tex file to pdf", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--program", help="What pdf building program to use", type=str, default="pdflatex")
+    args = parser.parse_args()
+    
+    filename = args.filename
+    to = args.to
+    toPdf = args.pdf
+    program = args.program
+
+    doWork(filename, to, toPdf, program)
+
+    if args.watch:
+        event_handler = LoggingEventHandler()
+        def on_modified(event: FileSystemEvent):
+            if not event.src_path.endswith(filename):
+                return
+            doWork(filename, to, toPdf, program)
+        
+        event_handler.on_modified = on_modified
+    
+
+        observer = Observer()
+        observer.schedule(event_handler, ".", recursive=False)
+        observer.start()
+        print("Started listening to changes")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()

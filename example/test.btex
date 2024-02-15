@@ -5,6 +5,8 @@
 @date\
 
 @document {
+    @graphic ciao\
+
     @maketitle\
     @tableofcontents\
 
@@ -16,11 +18,15 @@
     *heheheha*
     @href https://youtube.com a youtube link\
     @ref sec:hello\
-    _ciao_
+    _hello_ how are you?
+
+    ciaoc
 
     @center {
         Hi
     }
+
+    $$ciao$$
 
     @section test2\
 
@@ -60,6 +66,8 @@
                 {
                     test
                 }
-            }
+        }
     }
+
+    
 }

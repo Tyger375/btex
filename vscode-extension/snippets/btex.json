@@ -1,0 +1,313 @@
+{
+    "class": {
+        "prefix": [
+            "@class",
+            "@documentclass"
+        ],
+        "body": [
+            "@class ${0:article}\\"
+        ],
+        "description": "declare latex's class"
+    },
+    "document": {
+        "prefix": [
+            "@document"
+        ],
+        "body": [
+            "@document {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Main document"
+    },
+    "math": {
+        "prefix": [
+            "@math"
+        ],
+        "body": [
+            "@math {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Math"
+    },
+    "center": {
+        "prefix": [
+            "@center"
+        ],
+        "body": [
+            "@center {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Center"
+    },
+    "figure": {
+        "prefix": [
+            "@figure"
+        ],
+        "body": [
+            "@figure (${0:H}) {",
+            "\t@graphic ${1:graphic}\\",
+            "\t@centering\\",
+            "\t@caption ${2:caption}\\",
+            "\t@label fig:${1:graphic}\\",
+            "}"
+        ],
+        "description": "Figure"
+    },
+    "paragraph": {
+        "prefix": [
+            "@paragraph"
+        ],
+        "body": [
+            "@paragraph ${0:paragraph}\\"
+        ],
+        "description": "Paragraph"
+    },
+    "section": {
+        "prefix": [
+            "@section"
+        ],
+        "body": [
+            "@section (label=sec:${0:section}) ${0:section}\\"
+        ],
+        "description": "Section"
+    },
+    "subsection": {
+        "prefix": [
+            "@subsection"
+        ],
+        "body": [
+            "@subsection (label=subsec:${0:subsection}) ${0:subsection}\\"
+        ],
+        "description": "Subsection"
+    },
+    "subsubsection": {
+        "prefix": [
+            "@subsubsection"
+        ],
+        "body": [
+            "@subsubsection (label=subsubsec:${0:subsubsection}) ${0:subsubsection}\\"
+        ],
+        "description": "Subsubsection"
+    },
+    "import": {
+        "prefix": [
+            "@import",
+            "@usepackage"
+        ],
+        "body": [
+            "@import ${0:library}\\"
+        ],
+        "description": "import a library"
+    },
+    "use": {
+        "prefix": [
+            "@use",
+            "@graphicspath"
+        ],
+        "body": [
+            "@use ${0:path1} ${1:path2}\\"
+        ],
+        "description": "import folders for graphics"
+    },
+    "graphic": {
+        "prefix": [
+            "@graphic",
+            "@includegraphics"
+        ],
+        "body": [
+            "@graphic ${0:graphic}\\"
+        ],
+        "description": "Import a graphic"
+    },
+    "sqrt": {
+        "prefix": [
+            "@sqrt"
+        ],
+        "body": [
+            "@sqrt {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Square root"
+    },
+    "split": {
+        "prefix": [
+            "@split"
+        ],
+        "body": [
+            "@split {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Split"
+    },
+    "binom": {
+        "prefix": [
+            "@binom"
+        ],
+        "body": [
+            "@binom {",
+            "\t{",
+            "\t\t$0",
+            "\t}",
+            "\t{",
+            "\t\t$1",
+            "\t}",
+            "}"
+        ],
+        "description": "A binom"
+    },
+    "frac": {
+        "prefix": [
+            "@frac"
+        ],
+        "body": [
+            "@frac {",
+            "\t{",
+            "\t\t$0",
+            "\t}",
+            "\t{",
+            "\t\t$1",
+            "\t}",
+            "}"
+        ],
+        "description": "Fraction"
+    },
+    "tableofcontents": {
+        "prefix": [
+            "@tableofcontents"
+        ],
+        "body": [
+            "@tableofcontents\\"
+        ],
+        "description": "Table of contents"
+    },
+    "maketitle": {
+        "prefix": [
+            "@maketitle"
+        ],
+        "body": [
+            "@maketitle\\"
+        ],
+        "description": "Make the title"
+    },
+    "newpage": {
+        "prefix": [
+            "@newpage"
+        ],
+        "body": [
+            "@newpage\\"
+        ],
+        "description": "New page"
+    },
+    "title": {
+        "prefix": [
+            "@title"
+        ],
+        "body": [
+            "@title ${0:title}\\"
+        ],
+        "description": "Title"
+    },
+    "author": {
+        "prefix": [
+            "@author"
+        ],
+        "body": [
+            "@author ${0:author}\\"
+        ],
+        "description": "Author"
+    },
+    "date": {
+        "prefix": [
+            "@date"
+        ],
+        "body": [
+            "@date ${0:date}\\"
+        ],
+        "description": "Date"
+    },
+    "list": {
+        "prefix": [
+            "@list",
+            "@enumerate"
+        ],
+        "body": [
+            "@list {",
+            "\t@item {",
+            "\t\t$0",
+            "\t}",
+            "}"
+        ],
+        "description": "List"
+    },
+    "item": {
+        "prefix": [
+            "@item"
+        ],
+        "body": [
+            "@item {",
+            "\t$0",
+            "}"
+        ],
+        "description": "List item"
+    },
+    "href": {
+        "prefix": [
+            "@href",
+            "@link"
+        ],
+        "body": [
+            "@href ${0:link} ${1:text}\\"
+        ],
+        "description": "Link"
+    },
+    "code": {
+        "prefix": [
+            "@code"
+        ],
+        "body": [
+            "@code (language=${0:language}, label=lst:${1:label}) ${2:path}\\"
+        ],
+        "description": "Code"
+    },
+    "ref": {
+        "prefix": [
+            "@ref"
+        ],
+        "body": [
+            "@ref ${0:label}\\"
+        ],
+        "description": "Reference"
+    },
+    "caption": {
+        "prefix": [
+            "@caption"
+        ],
+        "body": [
+            "@caption ${0:caption}\\"
+        ],
+        "description": "A caption"
+    },
+    "centering": {
+        "prefix": [
+            "@centering"
+        ],
+        "body": [
+            "@centering\\"
+        ],
+        "description": "Centering"
+    },
+    "label": {
+        "label": [
+            "@label"
+        ],
+        "body": [
+            "@label ${0:label}\\"
+        ],
+        "description": "Label"
+    }
+}

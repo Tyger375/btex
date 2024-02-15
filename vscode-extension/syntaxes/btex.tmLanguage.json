@@ -1,0 +1,53 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "btex",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#macros"
+		},
+		{
+			"include": "#semicolon"
+		},
+		{
+			"include": "#links"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.btex",
+					"match": "@\\w*"
+				}
+			]
+		},
+		"macros": {
+			"patterns": [
+				{
+					"name": "constant.character.btex",
+					"match": "\\$\\$\\w+\\$\\$"
+				}
+			]
+		},
+		"semicolon": {
+			"patterns": [
+				{
+					"name": "constant.regexp.btex",
+					"match": "(?<!\\\\)(\\\\)(?!\\\\)"
+				}
+			]
+		},
+		"links": {
+			"patterns": [
+				{
+					"name": "constant.character.escape.btex",
+					"match": "https?:\\/\\/\\S*(?<!\\\\)"
+				}
+			]
+		}
+	},
+	"scopeName": "source.btex"
+}

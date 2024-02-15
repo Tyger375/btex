@@ -5,8 +5,6 @@
 @date\
 
 @document {
-    @graphic ciao\
-
     @maketitle\
     @tableofcontents\
 

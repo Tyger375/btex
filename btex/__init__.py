@@ -2,7 +2,7 @@ from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.events import LoggingEventHandler, FileSystemEvent
 import re, argparse, time, os
 
-def eval_main_scope(c, n, b, format) -> (bool, list[bool, bool, bool, str], str):
+def eval_main_scope(c, n, b, format) -> tuple[bool, list[bool, bool, bool, str], str]:
     if format[0]:
         if format[3] == '*':
             if format[1]:
@@ -33,7 +33,10 @@ def eval_main_scope(c, n, b, format) -> (bool, list[bool, bool, bool, str], str)
     return False, [False, False, False, ' '], ""
 
 vars = {
-    "textwidth": "\\textwidth"
+    "textwidth": "\\textwidth",
+    "percent": "\\%",
+    "fs": " ",
+    "fn": "\\\\"
 }
 
 def resolve_scope(scope: str, isMath: bool = False):
@@ -50,7 +53,7 @@ def resolve_scope(scope: str, isMath: bool = False):
 
         if isThisScope:
             if c == '\\' and n == '\\' and b != "}":
-                statement += '\\\\\n'
+                statement += "\\\\"
                 continue
             if isMath:
                 if c == "*":
@@ -82,17 +85,32 @@ def resolve_scope(scope: str, isMath: bool = False):
         l.append(statement)
     return l
 
-def eval_statement(line: str):
+def replace_macros(line: str):
     t = line
-    
-    matches = re.findall(r"\$\$[^)]+\$\$", line)
+
+    matches = re.findall(r"\$\$\w*\$\$", line)
+
     for match in matches:
         var = match[2:-2]
         if var in vars:
             t = t.replace(match, vars[var])
 
+    return t
+
+def eval_statement(line: str):
+    t = replace_macros(line)
+
     statement = [item for item in t.split(" ") if item != ""]
     return statement
+
+def exec_scope(scope):
+    t = ""
+    for s in scope:
+        s2, newline = exec_line(s)
+        t += s2
+        if newline:
+            t += "\n"
+    return t
 
 def documentclass(_, args):
     l = len(args)
@@ -101,59 +119,44 @@ def documentclass(_, args):
         docclass = f"\\documentclass{{{args[0]}}}"
     else:
         docclass = f"\\documentclass{args[0]}{{{args[1]}}}"
-    return ""
+    return "", True
 
 def document(_, args):
     scope = resolve_scope(" ".join(args))
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-        t += "\n"
-    return f"\\begin{{document}}\n\n{t}\n\\end{{document}}"
+    t = exec_scope(scope)
+    return f"\\begin{{document}}\n\n{t}\n\\end{{document}}", True
 
 def enumerate(_, args):
     scope = resolve_scope(" ".join(args), True)
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\begin{{enumerate}}\n{t}\n\\end{{enumerate}}"
+    t = exec_scope(scope)
+    return f"\\begin{{enumerate}}\n{t}\n\\end{{enumerate}}", True
 
 def math(_, args):
     scope = resolve_scope(" ".join(args), True)
     tryImport("amsmath")
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\begin{{equation}}\n{t}\n\\end{{equation}}"
+    t = exec_scope(scope)
+    return f"\\begin{{equation}}\n{t}\n\\end{{equation}}", True
 
 def center(_, args):
     scope = resolve_scope(" ".join(args), True)
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\begin{{center}}\n{t}\n\\end{{center}}"
+    t = exec_scope(scope)
+    return f"\\begin{{center}}\n{t}\n\\end{{center}}", True
 
 def sqrt(_, args):
     scope = resolve_scope("".join(args))
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\sqrt{{{t[0:-1]}}}"
+    t = exec_scope(scope)
+    return f"\\sqrt{{{t[0:-1]}}}", True
 
 def _split(_, args):
     tryImport("amsmath")
     scope = resolve_scope(" ".join(args), True)
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\begin{{split}}\n{t}\n\\end{{split}}"
+    t = exec_scope(scope)
+    return f"\\begin{{split}}\n{t}\n\\end{{split}}", True
 
 def item(_, args):
-    scope = resolve_scope("".join(args))
-    t = ""
-    for s in scope:
-        t += exec_line(s)
-    return f"\\item {t[0:-1]}"
+    scope = resolve_scope(" ".join(args))
+    t = exec_scope(scope)
+    return f"\\item {t[0:-3]}", True
 
 def binom(name, args):
     tryImport("amsmath")
@@ -167,15 +170,11 @@ def binom(name, args):
 
     first, second = scope
 
-    f = ""
-    for st in resolve_scope(first):
-        f += exec_line(st)
+    f = exec_scope(resolve_scope(first))
 
-    s = ""
-    for st in resolve_scope(second):
-        s += exec_line(st)
+    s = exec_scope(resolve_scope(second))
         
-    return f"\\binom{{{f}}}{{{s}}}"
+    return f"\\binom{{{f}}}{{{s}}}", True
 
 def frac(name, args):
     string = ' '.join(eval_statement(' '.join(args)))
@@ -188,18 +187,14 @@ def frac(name, args):
 
     first, second = scope
 
-    f = ""
-    for st in resolve_scope(first):
-        f += exec_line(st)
+    f = exec_scope(resolve_scope(first))
 
-    s = ""
-    for st in resolve_scope(second):
-        s += exec_line(st)
+    s = exec_scope(resolve_scope(second))
         
-    return f"\\frac{{{f}}}{{{s}}}"
+    return f"\\frac{{{f}}}{{{s}}}", True
 
 def section(name, args):
-    string = ' '.join(eval_statement(''.join(args)))
+    string = ' '.join(eval_statement(' '.join(args)))
     match = re.match(r"\([^)]+\)", string)
     params = ""
     if match is not None:
@@ -216,7 +211,7 @@ def section(name, args):
             label = f"\\label{{{second}}}"
 
     
-    return f"\\{name}{{{string}}}{label}"
+    return f"\\{name}{{{string}}}{label}\n", True
 
 def figure(_, args):
     tryImport("float")
@@ -227,16 +222,13 @@ def figure(_, args):
         params = string[match.start():match.end()][1:-1]
         string = string[match.end():]
 
-    c = ""
-    for st in resolve_scope(string):
-        c += exec_line(st)
-        c += "\n"
+    c = exec_scope(resolve_scope(string))
 
     p = ""
     if params != "":
         p = f"[{params}]"
     
-    return f"\\begin{{figure}}{p}\n{c}\n\\end{{figure}}"
+    return f"\\begin{{figure}}{p}\n{c}\n\\end{{figure}}", True
 
 def href(name, args):
     if len(args) < 2:
@@ -245,7 +237,7 @@ def href(name, args):
     first, *second = args
     second = " ".join(second)
     tryImport("hyperref")
-    return f"\\href{{{first}}}{{{second}}}"
+    return f"\\href{{{first}}}{{{second}}}", False
 
 def code(_, args):
     tryImport("xcolor")
@@ -269,18 +261,18 @@ def code(_, args):
 
     p = ','.join(f"{key}={val}" for key, val in parsed.items())
     
-    return f"\\lstinputlisting[{p}]{{{string}}}"
+    return f"\\lstinputlisting[{p}]{{{string}}}", True
 
 def _import(_, args):
     if len(args) != 1:
         print("How many fucking parameters did you put?")
         exit(1)
-    return f"\\usepackage{{{args[0]}}}"
+    return f"\\usepackage{{{args[0]}}}", True
 
 def use(_, args):
     tryImport("graphicx")
     s = ''.join(["{" + arg + "}" for arg in args])
-    return f"\\graphicspath{{{s}}}"
+    return f"\\graphicspath{{{s}}}", True
 
 def usegraphics(_, args):
     string = ' '.join(eval_statement(''.join(args)))
@@ -292,14 +284,21 @@ def usegraphics(_, args):
 
     tryImport("graphicx")
 
-    return f"\\includegraphics[{param}]{{{string}}}"
+    return f"\\includegraphics[{param}]{{{string}}}", True
 
 def itself(name, _):
-    return f"\\{name}"
+    return f"\\{name}", False
+
+def itselfnewline(name, _):
+    return f"\\{name}", True
 
 def simpleassign(name, args):
     s = ' '.join(args)
-    return f"\\{name}{{{s}}}"
+    return f"\\{name}{{{s}}}", False
+
+def simpleassignnewline(name, args):
+    s = ' '.join(args)
+    return f"\\{name}{{{s}}}", True
 
 items = {
     "class": documentclass,
@@ -318,12 +317,12 @@ items = {
     "split": _split,
     "binom": binom,
     "frac": frac,
-    "tableofcontents": itself,
-    "maketitle": itself,
-    "newpage": itself,
-    "title": simpleassign,
-    "author": simpleassign,
-    "date": simpleassign,
+    "tableofcontents": itselfnewline,
+    "maketitle": itselfnewline,
+    "newpage": itselfnewline,
+    "title": simpleassignnewline,
+    "author": simpleassignnewline,
+    "date": simpleassignnewline,
     "list": enumerate,
     "item": item,
     "href": href,
@@ -334,16 +333,16 @@ items = {
     "label": simpleassign,
     # Texts
     "vspace": simpleassign,
-    "tiny": itself,
-    "scriptsize": itself,
-    "footnotesize": itself,
-    "small": itself,
-    "normalsize": itself,
-    "large": itself,
-    "Large": itself,
-    "LARGE": itself,
-    "huge": itself,
-    "Huge": itself
+    "tiny": itselfnewline,
+    "scriptsize": itselfnewline,
+    "footnotesize": itselfnewline,
+    "small": itselfnewline,
+    "normalsize": itselfnewline,
+    "large": itselfnewline,
+    "Large": itselfnewline,
+    "LARGE": itselfnewline,
+    "huge": itselfnewline,
+    "Huge": itselfnewline
 }
 
 def exec_line(line):
@@ -352,7 +351,8 @@ def exec_line(line):
     if statement[0][0] == "@":
         ref = statement[0][1:]
         return items[ref](ref, statement[1:])
-    return " ".join(statement)
+    
+    return replace_macros(" ".join(statement)), True
 
 docclass = ""
 
@@ -424,8 +424,10 @@ def compile(text: str, to: str):
     compiled = ""
 
     for i in split:
-        compiled += exec_line(i)
-        compiled += "\n"
+        s, newline = exec_line(i)
+        compiled += s
+        if newline:
+            compiled += "\n"
 
     compiled = docclass + "\n" + eval_imports() + compiled
 
@@ -491,4 +493,4 @@ def cli():
         observer.join()
 
 if __name__ == "__main__":
-    cli
+    cli()

@@ -88,8 +88,6 @@ def resolve_scope(scope: str, isMath: bool = False):
 def replace_macros(line: str):
     t = str(line)
 
-    print(t)
-
     s = re.sub(r"{.*}", "", t)
 
     matches = re.findall(r"\$\$\w*\$\$", s)
@@ -226,8 +224,6 @@ def figure(_, args):
         params = string[match.start():match.end()][1:-1]
         string = string[match.end():]
 
-    #print(string)
-
     c = exec_scope(resolve_scope(string))
 
     p = ""
@@ -355,8 +351,6 @@ items = {
 
 def exec_line(line):
     statement = [item for item in line.split(" ") if item != ""]
-
-    #print(statement)
     
     if statement[0][0] == "@":
         ref = statement[0][1:]

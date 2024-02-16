@@ -279,7 +279,6 @@ def use(_, args):
 def usegraphics(_, args):
     string = ' '.join(eval_statement(''.join(args)))
     string = replace_macros(string)
-    print(string, ''.join(args))
     match = re.match(r"\([^)]+\)", string)
     param = ""
     if match is not None:

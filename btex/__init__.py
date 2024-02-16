@@ -86,14 +86,18 @@ def resolve_scope(scope: str, isMath: bool = False):
     return l
 
 def replace_macros(line: str):
-    t = line
+    t = str(line)
 
-    matches = re.findall(r"\$\$\w*\$\$", line)
+    print(t)
+
+    s = re.sub(r"{.*}", "", t)
+
+    matches = re.findall(r"\$\$\w*\$\$", s)
 
     for match in matches:
         var = match[2:-2]
         if var in vars:
-            t = t.replace(match, vars[var])
+            t = line.replace(match, vars[var])
 
     return t
 
@@ -199,7 +203,7 @@ def section(name, args):
     params = ""
     if match is not None:
         params = string[match.start():match.end()][1:-1]
-        string = string[match.end():]
+        string = string[match.end():].strip()
 
     label = ""
 
@@ -221,6 +225,8 @@ def figure(_, args):
     if match is not None:
         params = string[match.start():match.end()][1:-1]
         string = string[match.end():]
+
+    #print(string)
 
     c = exec_scope(resolve_scope(string))
 
@@ -276,6 +282,8 @@ def use(_, args):
 
 def usegraphics(_, args):
     string = ' '.join(eval_statement(''.join(args)))
+    string = replace_macros(string)
+    print(string, ''.join(args))
     match = re.match(r"\([^)]+\)", string)
     param = ""
     if match is not None:
@@ -328,9 +336,9 @@ items = {
     "href": href,
     "code": code,
     "ref": simpleassign,
-    "caption": simpleassign,
-    "centering": itself,
-    "label": simpleassign,
+    "caption": simpleassignnewline,
+    "centering": itselfnewline,
+    "label": simpleassignnewline,
     # Texts
     "vspace": simpleassign,
     "tiny": itselfnewline,
@@ -347,6 +355,8 @@ items = {
 
 def exec_line(line):
     statement = [item for item in line.split(" ") if item != ""]
+
+    #print(statement)
     
     if statement[0][0] == "@":
         ref = statement[0][1:]

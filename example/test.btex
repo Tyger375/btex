@@ -42,9 +42,7 @@
         @sqrt {
             x^2 - 1
         } * 2
-        @split {
-            
-        }
+        
         @binom {
             {
                 @sqrt {
@@ -73,5 +71,28 @@
 
     @subfigure (b) {
 
+    }
+
+    Ciaoaoo
+
+    @math {
+        v^{AB}_{n} = 2\\
+        v@superscript AB\@subscript n\ = 2\\
+        @integral {
+            {
+                i = 0
+            }
+            {
+                n
+            }
+        }
+        @sum {
+            {
+                i = 1
+            }
+            {
+                $$infinity$$
+            }
+        }
     }
 }

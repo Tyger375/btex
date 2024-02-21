@@ -34,13 +34,16 @@ def eval_main_scope(c, n, b, format) -> tuple[bool, list[bool, bool, bool, str],
 
 vars = {
     "textwidth": "\\textwidth",
+    "infinity": "\\infty",
     "percent": "\\%",
     "fs": " ",
     "fn": "\\\\"
 }
 
 def resolve_scope(scope: str, isMath: bool = False):
-    t = scope.replace("\n", "").replace("\t", "").replace("}", "}\\").replace("@", " \\@")
+    t = scope.replace("\n", "").replace("\t", "").replace("@", " \\@")
+    if not isMath:
+        t = t.replace("}", "}\\")
     l = []
     statement = ""
     opened = -1
@@ -128,24 +131,31 @@ def document(_, args):
     t = exec_scope(scope)
     return f"\\begin{{document}}\n\n{t}\n\\end{{document}}", True
 
+def latex(_, args):
+    scope = " ".join(args).replace("}\\\\", "}")
+    res = re.findall(r"(?<={)(.*)(?=})", scope)
+    s = "".join(res).strip()
+    return s, True
+
 def enumerate(_, args):
-    scope = resolve_scope(" ".join(args), True)
+    scope = resolve_scope(" ".join(args))
     t = exec_scope(scope)
     return f"\\begin{{enumerate}}\n{t}\n\\end{{enumerate}}", True
 
 def math(_, args):
-    scope = resolve_scope(" ".join(args), True)
+    a = " ".join(args).replace("}\\", "}")
+    scope = resolve_scope(a, True)
     tryImport("amsmath")
-    t = exec_scope(scope)
-    return f"\\begin{{equation}}\n{t}\n\\end{{equation}}", True
+    t = exec_scope(scope).strip()
+    return f"\\begin{{equation}}\n{t}\\end{{equation}}", True
 
 def center(_, args):
-    scope = resolve_scope(" ".join(args), True)
+    scope = resolve_scope(" ".join(args))
     t = exec_scope(scope)
     return f"\\begin{{center}}\n{t}\n\\end{{center}}", True
 
 def sqrt(_, args):
-    scope = resolve_scope("".join(args))
+    scope = resolve_scope("".join(args), True)
     t = exec_scope(scope)
     return f"\\sqrt{{{t[0:-1]}}}", True
 
@@ -172,9 +182,9 @@ def binom(name, args):
 
     first, second = scope
 
-    f = exec_scope(resolve_scope(first))
+    f = exec_scope(resolve_scope(first, True)).strip()
 
-    s = exec_scope(resolve_scope(second))
+    s = exec_scope(resolve_scope(second, True)).strip()
         
     return f"\\binom{{{f}}}{{{s}}}", True
 
@@ -189,11 +199,45 @@ def frac(name, args):
 
     first, second = scope
 
-    f = exec_scope(resolve_scope(first))
+    f = exec_scope(resolve_scope(first, True)).strip()
 
-    s = exec_scope(resolve_scope(second))
+    s = exec_scope(resolve_scope(second, True)).strip()
         
     return f"\\frac{{{f}}}{{{s}}}", True
+
+def integral(name, args):
+    string = ' '.join(eval_statement(' '.join(args)))
+    
+    scope = resolve_scope(string.replace("\\", ""))
+
+    if len(scope) != 2:
+        print(f"Error in {name}")
+        exit(1)
+
+    first, second = scope
+
+    f = exec_scope(resolve_scope(first, True)).strip()
+
+    s = exec_scope(resolve_scope(second, True)).strip()
+        
+    return f"\\int_{{{f}}}^{{{s}}}", True
+
+def mathoperator(name, args):
+    string = ' '.join(eval_statement(' '.join(args)))
+    
+    scope = resolve_scope(string.replace("\\", ""))
+
+    if len(scope) != 2:
+        print(f"Error in {name}")
+        exit(1)
+
+    first, second = scope
+
+    f = exec_scope(resolve_scope(first, True)).strip()
+
+    s = exec_scope(resolve_scope(second, True)).strip()
+        
+    return f"\\{name}_{{{f}}}^{{{s}}}", True
 
 def section(name, args):
     string = ' '.join(eval_statement(' '.join(args)))
@@ -344,6 +388,10 @@ def usegraphics(_, args):
 
     return f"\\includegraphics[{param}]{{{string}}}", True
 
+def sscript(name: str, args):
+    s = ' '.join(args)
+    return f"\\text{name}{{{s}}}", True
+
 def itself(name, _):
     return f"\\{name}", False
 
@@ -362,6 +410,7 @@ def simpleassignnewline(name, args):
 items = {
     "class": documentclass,
     "document": document,
+    "latex": latex,
     "math": math,
     "center": center,
     "figure": figure,
@@ -392,6 +441,15 @@ items = {
     "caption": simpleassignnewline,
     "centering": itselfnewline,
     "label": simpleassignnewline,
+    "superscript": sscript,
+    "subscript": sscript,
+    "integral": integral,
+    "sum": mathoperator,
+    "prod": mathoperator,
+    "cup": mathoperator,
+    "cap": mathoperator,
+    "oint": mathoperator,
+    "coprod": mathoperator,
     # Texts
     "vspace": simpleassign,
     "tiny": itselfnewline,
@@ -408,7 +466,7 @@ items = {
     "hfill": itselfnewline
 }
 
-def exec_line(line):
+def exec_line(line: str):
     statement = [item for item in line.split(" ") if item != ""]
     
     if statement[0][0] == "@":

@@ -1,4 +1,8 @@
 - snippets:
   - wrapfigure
   - subfigure
+  - latex
+  - superscript
+  - subscript
+  - math operators (integral, sum etc)
 - suggestions for macros

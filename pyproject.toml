@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "btex"
-version = "0.2.1"
+version = "0.2.2"
 description = "A latex's superset"
 authors = ["Tyger375 <edoardo.takanen@gmail.com>"]
 readme = "README.md"

@@ -232,6 +232,61 @@ def figure(_, args):
     
     return f"\\begin{{figure}}{p}\n{c}\n\\end{{figure}}", True
 
+def subfigure(_, args):
+    tryImport("caption")
+    tryImport("subcaption")
+    string = ' '.join(eval_statement(' '.join(args)))
+    match = re.match(r"\([^)]+\)", string)
+    params = ""
+    if match is not None:
+        params = string[match.start():match.end()][1:-1]
+        string = string[match.end():]
+
+    c = exec_scope(resolve_scope(string))
+
+    p = ""
+    if params != "":
+        p = f"[{params}]"
+    
+    return f"\\begin{{subfigure}}{p}\n{c}\n\\end{{subfigure}}", True
+
+def wrapfigure(_, args):
+    tryImport("float")
+    tryImport("wrapfig")
+    string = ' '.join(eval_statement(' '.join(args)))
+    match = re.match(r"\([^)]+\)", string)
+    params = ""
+    if match is not None:
+        params = string[match.start():match.end()][1:-1]
+        string = string[match.end():]
+
+    c = exec_scope(resolve_scope(string))
+
+    lineheight = ""
+    position = "{r}"
+    width = "{0.5\\textwidth}"
+
+    for p in params.split(","):
+        if p == "":
+            continue
+        s = p.split("=")
+        if len(s) < 2:
+            print("Invalid arguments size")
+            exit(1)
+        name = s[0].strip()
+        value = "".join(s[1:])
+        if name == "lineheight":
+            lineheight = f"[{value}]"
+        elif name == "position":
+            position = f"{{{value}}}"
+        elif name == "width":
+            width = f"{{{value}}}"
+        else:
+            print(f"Invalid parameter for wrapfigure: {name}")
+            exit(1)
+    
+    return f"\\begin{{wrapfigure}}{lineheight}{position}{width}\n{c}\n\\end{{wrapfigure}}", True
+
 def href(name, args):
     if len(args) < 2:
         print(f"Error in {name}")
@@ -303,12 +358,15 @@ def simpleassignnewline(name, args):
     s = ' '.join(args)
     return f"\\{name}{{{s}}}", True
 
+# TODO: add tables
 items = {
     "class": documentclass,
     "document": document,
     "math": math,
     "center": center,
     "figure": figure,
+    "subfigure": subfigure,
+    "wrapfigure": wrapfigure,
     "paragraph": section,
     "section": section,
     "subsection": section,
@@ -345,7 +403,9 @@ items = {
     "Large": itselfnewline,
     "LARGE": itselfnewline,
     "huge": itselfnewline,
-    "Huge": itselfnewline
+    "Huge": itselfnewline,
+    "hline": itselfnewline,
+    "hfill": itselfnewline
 }
 
 def exec_line(line):
@@ -353,6 +413,9 @@ def exec_line(line):
     
     if statement[0][0] == "@":
         ref = statement[0][1:]
+        if not ref in items:
+            print(f"Invalid expression: {ref}")
+            exit(1)
         return items[ref](ref, statement[1:])
     
     return replace_macros(" ".join(statement)), True

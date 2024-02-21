@@ -67,5 +67,11 @@
         }
     }
 
-    
+    @wrapfigure (position=l, width=5$$textwidth$$, lineheight=3$$textwidth$$) {
+
+    }
+
+    @subfigure (b) {
+
+    }
 }

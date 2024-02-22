@@ -35,6 +35,7 @@ def eval_main_scope(c, n, b, format) -> tuple[bool, list[bool, bool, bool, str],
 vars = {
     "textwidth": "\\textwidth",
     "infinity": "\\infty",
+    "dot": "\\cdot",
     "percent": "\\%",
     "fs": " ",
     "fn": "\\\\"
@@ -62,9 +63,19 @@ def resolve_scope(scope: str, isMath: bool = False):
                 if c == "*":
                     statement += "\\times"
                     continue
+                if c == "/":
+                    statement += "\\div"
+                    continue
             else:
                 _continue, f, toadd = eval_main_scope(c, n, b, format)
                 format = f
+                if toadd == "}":
+                    statement = re.sub(r"}\\\\", "}", statement)
+                    toeval = re.sub(r"\\.*{", "", statement)
+                    scope = resolve_scope(f"{{{toeval}}}")
+                    s = [exec_line(l)[0] for l in scope]
+                    prefix = re.findall(r"\\.*{", statement)
+                    statement = prefix[0] + replace_macros("".join(s))
                 statement += toadd
                 if _continue:
                     continue
@@ -143,11 +154,51 @@ def enumerate(_, args):
     return f"\\begin{{enumerate}}\n{t}\n\\end{{enumerate}}", True
 
 def math(_, args):
-    a = " ".join(args).replace("}\\", "}")
-    scope = resolve_scope(a, True)
+    string = " ".join(args).replace("}\\", "}")
+
+    match = re.match(r"\([^)]+\)", string)
+    params = ""
+    if match is not None:
+        params = string[match.start():match.end()][1:-1]
+        string = string[match.end():].strip()
+
+    label = ""
+
+    for param in params.split(","):
+        if param == "":
+            continue
+        first, second = param.split("=")
+        if first == "label":
+            label = f"\\label{{{second}}}"
+
+    scope = resolve_scope(string, True)
     tryImport("amsmath")
     t = exec_scope(scope).strip()
-    return f"\\begin{{equation}}\n{t}\\end{{equation}}", True
+    return f"\\begin{{equation}} {label}\n{t}\\end{{equation}}", True
+
+def equations(_, args):
+    string = " ".join(args).replace("}\\", "}")
+
+    match = re.match(r"\([^)]+\)", string)
+    params = ""
+    if match is not None:
+        params = string[match.start():match.end()][1:-1]
+        string = string[match.end():].strip()
+
+    label = ""
+
+    for param in params.split(","):
+        if param == "":
+            continue
+        first, second = param.split("=")
+        if first == "label":
+            label = f"\\label{{{second}}}"
+
+    scope = resolve_scope(string, True)
+    tryImport("amsmath")
+    t = exec_scope(scope).strip()
+
+    return f"\\begin{{align*}} {label}\n{t}\\end{{align*}}", True
 
 def center(_, args):
     scope = resolve_scope(" ".join(args))
@@ -163,7 +214,7 @@ def _split(_, args):
     tryImport("amsmath")
     scope = resolve_scope(" ".join(args), True)
     t = exec_scope(scope)
-    return f"\\begin{{split}}\n{t}\n\\end{{split}}", True
+    return f"\\begin{{split}}\n{t}\\end{{split}}", True
 
 def item(_, args):
     scope = resolve_scope(" ".join(args))
@@ -255,7 +306,6 @@ def section(name, args):
         first, second = param.split("=")
         if first == "label":
             label = f"\\label{{{second}}}"
-
     
     return f"\\{name}{{{string}}}{label}\n", True
 
@@ -412,6 +462,7 @@ items = {
     "document": document,
     "latex": latex,
     "math": math,
+    "equations": equations,
     "center": center,
     "figure": figure,
     "subfigure": subfigure,

@@ -95,4 +95,20 @@
             }
         }
     }
+
+    @math (label=test) {
+        @split {
+            C & = n $$dot$$ n\\
+              & = 2
+        }
+    }
+
+    @equations {
+        A + B = 2\\
+        B = 3
+    }
+
+    *m@superscript AB\$$fs$$ and*\\
+
+    *hi how are you?*
 }

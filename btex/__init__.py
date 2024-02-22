@@ -38,7 +38,18 @@ vars = {
     "dot": "\\cdot",
     "percent": "\\%",
     "fs": " ",
-    "fn": "\\\\"
+    "fn": "\\\\",
+    "perp": "\\perp",
+    "parallel": "\\parallel",
+    "parallelsum": "\\parallelsum",
+    "Up": "\\Uparrow",
+    "up": "\\Uparrow",
+    "Down": "\\Downarrow",
+    "down": "\\downarrow",
+    "Left": "\\Leftarrow",
+    "left": "\\leftarrow",
+    "Right": "\\Rightarrow",
+    "right": "\\rightarrow"
 }
 
 def resolve_scope(scope: str, isMath: bool = False):
@@ -71,10 +82,10 @@ def resolve_scope(scope: str, isMath: bool = False):
                 format = f
                 if toadd == "}":
                     statement = re.sub(r"}\\\\", "}", statement)
-                    toeval = re.sub(r"\\.*{", "", statement)
+                    toeval = re.sub(r".*\\.*{", "", statement)
                     scope = resolve_scope(f"{{{toeval}}}")
                     s = [exec_line(l)[0] for l in scope]
-                    prefix = re.findall(r"\\.*{", statement)
+                    prefix = re.findall(r".*\\.*{", statement)
                     statement = prefix[0] + replace_macros("".join(s))
                 statement += toadd
                 if _continue:

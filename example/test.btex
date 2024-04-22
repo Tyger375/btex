@@ -1,5 +1,7 @@
 @class article\
 
+@import components\
+
 @title Hi\
 @author Tyger375\
 @date\
@@ -7,6 +9,8 @@
 @document {
     @maketitle\
     @tableofcontents\
+
+    @usecomponent ciao\
 
     @paragraph (label=hello) TEST\
     @section (label=sec:hello) test\
@@ -69,8 +73,10 @@
 
     }
 
-    @subfigure (b) {
+    @figure (H) {
+        @subfigure (width=2$$textwidth$$, H) {
 
+        }
     }
 
     Ciaoaoo

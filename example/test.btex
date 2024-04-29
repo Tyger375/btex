@@ -10,7 +10,8 @@
     @maketitle\
     @tableofcontents\
 
-    @usecomponent ciao\
+    @usecomponent (name=test) ciao\
+    @usecomponent (name=test, label=ok) test\
 
     @paragraph (label=hello) TEST\
     @section (label=sec:hello) test\
@@ -102,16 +103,32 @@
         }
     }
 
+    MATH:\\
+
     @math (label=test) {
         @split {
             C & = n $$dot$$ n\\
               & = 2
         }
     }
+    @math {
+        C = n $$dot$$ n
+          = 2
+    }
+
+    EQUATIONS:\\
 
     @equations {
-        A + B = 2\\
-        B = 3
+        A + B &= 2\\
+        B &= 3\\
+        A &= -1
+    }
+
+    @math {
+        @lim {
+            h $$right$$ 0
+        }
+        2x + h
     }
 
     *m@superscript AB\$$fs$$ and*\\

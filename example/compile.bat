@@ -1,0 +1,1 @@
+python ..\btex\__init__.py .\test.btex --pdf --watch --to ./out/out.tex

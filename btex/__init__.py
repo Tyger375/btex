@@ -8,6 +8,29 @@ from watchdog.events import LoggingEventHandler, FileSystemEvent
 from watchdog.observers.polling import PollingObserver as Observer
 
 
+class CustomComponent():
+    def __init__(
+            self,
+            name: str,
+            params: list[str],
+            body: str
+        ) -> None:
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def call(self, params: dict[str, str]):
+        b = self.body
+        for param, value in params.items():
+            if param not in self.params:
+                print(f"Error in component {self.name}: parameter {param} isn't valid")
+                exit(1)
+            b = b.replace(f"@param {param}", value)
+        for p in self.params:
+            b = b.replace(f"@param {p}", "")
+        return exec_scope(resolve_scope(f"{{{b}}}"))
+
+
 def eval_main_scope(c, b, fformat: list) -> tuple[bool, list, str]:
     if fformat[0]:
         if fformat[3] == '*':
@@ -56,12 +79,34 @@ VARS = {
     "Left": "\\Leftarrow",
     "left": "\\leftarrow",
     "Right": "\\Rightarrow",
-    "right": "\\rightarrow"
+    "right": "\\rightarrow",
+    # relation operators
+    #
+    "nless": "\\nless",
+    "leq": "\\leq",
+    "leqslant": "\\leqslant",
+    "nleq": "\\nleq",
+    "nleqslant": "\\nleqslant",
+    #
+    "ngtr": "\\ngtr",
+    "geq": "\\geq",
+    "geqslant": "\\geqslant",
+    "ngeq": "\\ngeq",
+    "ngeqslant": "\\ngeqslant",
+    #
+    "doteq": "\\doteq",
+    "equiv": "\\equiv",
+    "approx": "\\approx",
+    "cong": "\\cong",
+    "simeq": "\\simeq",
+    "sim": "\\sim",
+    "propto": "\\propto",
+    "neq": "\\neq"
 }
 
 main_path = ""
 imports_to_watch = []
-customComponents = {}
+customComponents: list[CustomComponent] = {}
 
 
 def resolve_scope(scope: str, is_math: bool = False):
@@ -133,7 +178,7 @@ def replace_macros(line: str):
     for match in matches:
         var = match[2:-2]
         if var in VARS:
-            t = line.replace(match, VARS[var])
+            t = t.replace(match, VARS[var])
 
     return t
 
@@ -166,31 +211,40 @@ def documentclass(_, args):
 
 
 def custom_component(_, args):
-    string, params, _ = getparams(args)
-    name = ""
-    for param in params.split():
+    name = args[0]
+    if name[0] == "(":
+        print("Error in component: name can't be null")
+        exit(1)
+    string, params, _ = getparams(args[1:], False)
+    customParams = []
+    for param in params.replace(", ", ",").split(","):
         if param == "":
             continue
-        first, second = param.split("=")
-        if first == "name":
-            name = second
+        if param in customParams:
+            print(f"Error in component {name}: param with name {param} already exists")
+        customParams.append(param)
     if name == "":
         print("Error in component: name can't be null")
         exit(1)
     if name in customComponents:
         print(f"Error in component: {name} already exists")
         exit(1)
-    f = exec_scope(resolve_scope(string)).strip()
-    customComponents[name] = f
+    customComponents[name] = CustomComponent(name, customParams, "".join(resolve_scope(string)))
     return "", False
 
 
 def use_custom_component(_, args):
-    name = args[0]
+    name, params, _ = getparams(args, False)
+    p = {}
+    for param in params.replace(", ", ",").split(","):
+        if param == "":
+            continue
+        first, second = param.split("=")
+        p[first] = second
     if name not in customComponents:
         print(f"Error: invalid custom component: {name}")
         exit(1)
-    return customComponents[name], True
+    return customComponents[name].call(p), True
 
 
 def document(_, args):
@@ -313,6 +367,12 @@ def frac(name, args):
 def integral(name, args):
     f, s = simplemathfunc(args, name)
     return f"\\int_{{{f}}}^{{{s}}}", True
+
+
+def limit(_, args):
+    scope = resolve_scope(" ".join(args))
+    f = exec_scope(scope)
+    return f"\\lim_{{{f}}}", True
 
 
 def mathoperator(name, args):
@@ -540,6 +600,7 @@ items = {
     "subscript": sscript,
     "integral": integral,
     "sum": mathoperator,
+    "lim": limit,
     "prod": mathoperator,
     "cup": mathoperator,
     "cap": mathoperator,
@@ -693,7 +754,7 @@ def do_work(_from: str, to: str, to_pdf: bool, program: str):
 def cli():
     parser = argparse.ArgumentParser("btex")
 
-    parser.add_argument("filename", help="An integer will be increased by 1 and printed.", type=str)
+    parser.add_argument("filename", help="btex filename", type=str)
     parser.add_argument("--to", help="file name output", default="out.tex", type=str)
     parser.add_argument("--watch", help="Watch file changes", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--pdf", help="Auto build tex file to pdf", action=argparse.BooleanOptionalAction,

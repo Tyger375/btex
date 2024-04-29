@@ -1,5 +1,9 @@
-@component (name=ciao) {
+@component ciao (name) {
     @center {
-        TEST COMPONENTS 23
+        TEST COMPONENTS @param name\
     }
+}
+
+@component test (name, label) {
+    CIAO @param name @param label
 }

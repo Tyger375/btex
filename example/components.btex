@@ -1,9 +1,0 @@
-@component ciao (name) {
-    @center {
-        TEST COMPONENTS @param name\
-    }
-}
-
-@component test (name, label) {
-    CIAO @param name @param label
-}

@@ -1,0 +1,55 @@
+@class article\
+
+@document {
+    For a single math equation/expression
+    @math {
+        @sqrt {
+            x^2 - 1
+        } * 2
+        
+        
+        @frac {
+                {
+                    @sqrt {
+                        x - 2
+                    }
+                }
+                {
+                    2
+                }
+        }
+    }
+
+    For multiple math expressions:
+    @equations {
+        y & = 2x - 2\\
+        y & = -@frac {{x}{2}} + 5
+    }
+
+    Use @latex {\&} to align equations
+
+    or
+    
+    @math {
+        @split {
+            @binom {
+                {5}
+                {2}
+            } & $$dot$$ @binom {
+                {-4}
+                {-2}
+            }
+            \\
+            @integral {
+                {0}
+                {$$infinity$$}
+            } & 2dx
+            \\
+            & X^{AB}_2 \\
+            @lim {
+                h $$right$$ 0
+            }
+            & 2x + h
+        }
+    }
+}

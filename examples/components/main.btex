@@ -1,0 +1,7 @@
+@class article\
+
+@import component\
+
+@document {
+    @usecomponent (name=Tyger) CustomComponent\
+}

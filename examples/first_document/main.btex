@@ -1,0 +1,26 @@
+@class article\
+
+@title Title\
+@author Author\
+@date\
+
+@document {
+    @maketitle\
+
+    @center {
+        Hello World!\\
+
+        _underlined_\\
+        *italic*\\
+        **bold**\\
+        \\
+        A reference @ref sec:section\ \\
+        @href https://google.com A link\
+    }
+
+    @newpage\
+
+    @section (label=sec:section) A Section\
+
+    Some text
+}

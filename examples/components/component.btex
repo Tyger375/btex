@@ -1,0 +1,5 @@
+@component CustomComponent (name) {
+    @center {
+        Hi @param name\
+    }
+}

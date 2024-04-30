@@ -1,0 +1,24 @@
+@class article\
+
+@document {
+    @graphic (width=1$$textwidth$$) figure\
+
+    @figure (H) {
+        @graphic (width=.75$$textwidth$$) figure\
+        @centering\
+        @caption caption\
+    }
+
+    @figure (H) {
+        @subfigure (width=.5$$textwidth$$, H) {
+            @graphic (width=1$$textwidth$$) figure\
+        }
+        @subfigure (width=.5$$textwidth$$, H) {
+            @graphic (width=1$$textwidth$$) figure\
+        }
+    }
+
+    @wrapfigure (position=l, width=.5$$textwidth$$, lineheight=3$$textwidth$$) {
+        @graphic (width=1$$textwidth$$) figure\
+    }
+}

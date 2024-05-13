@@ -104,6 +104,16 @@ VARS = {
     "neq": "\\neq"
 }
 
+
+def newEnv():
+    return {
+        "pdftitle": "Document"
+    }
+
+
+ENV = newEnv()
+
+
 main_path = ""
 imports_to_watch = []
 customComponents: list[CustomComponent] = {}
@@ -207,6 +217,26 @@ def documentclass(_, args):
         docclass = f"\\documentclass{{{args[0]}}}"
     else:
         docclass = f"\\documentclass{args[0]}{{{args[1]}}}"
+    return "", True
+
+
+def setenv(_, args):
+    scope = ""
+    txt = " ".join(args)
+    if args[0] == "{":
+        scope = resolve_scope(txt)
+    else:
+        with open(txt) as f:
+            scope = f.read().split("\n")
+
+    for statement in scope:
+        pair: list[str] = statement.split("=")
+        if len(pair) < 2:
+            print("Error in env: not enough information")
+            exit(1)
+        var = pair[0].strip()
+        value = pair[1].strip()
+        ENV[var] = value
     return "", True
 
 
@@ -498,7 +528,7 @@ def code(_, args):
 
 def _import(_, args):
     """if len(args) != 1:
-        print("How many fucking parameters did you put?")
+        print("How many parameters did you put?")
         exit(1)
     return f"\\usepackage{{{args[0]}}}", True"""
     filename = args[0]
@@ -577,6 +607,7 @@ items = {
     "subsubsection": section,
     "import": _import,
     "use": use,
+    "env": setenv,
     "graphic": usegraphics,
     "sqrt": sqrt,
     "split": _split,
@@ -652,15 +683,15 @@ def eval_imports():
     for i in imports:
         label = f"\\usepackage{{{i}}}\n"
         if i == "hyperref":
-            label += """
-\\hypersetup{
+            label += f"""
+\\hypersetup{{
     colorlinks=true,
     linkcolor=blue,
     filecolor=magenta,
     urlcolor=cyan,
-    pdftitle={Overleaf Example},
+    pdftitle={{{ENV["pdftitle"]}}},
     pdfpagemode=FullScreen,
-}\n
+}}\n
 """
         if i == "listings":
             label += """
@@ -707,6 +738,8 @@ def read(f: str):
 def compile_text(text: str, to: str):
     customComponents.clear()
     imports_to_watch.clear()
+    global ENV
+    ENV = newEnv()
     split = resolve_scope(f"{{{text}}}")
 
     compiled = ""

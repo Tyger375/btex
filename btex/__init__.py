@@ -282,9 +282,14 @@ def document(_, args):
     t = exec_scope(scope)
     return f"\\begin{{document}}\n\n{t}\n\\end{{document}}", True
 
+def frame(_, args):
+    scope = resolve_scope(" ".join(args))
+    t = exec_scope(scope)
+    return f"\\begin{{frame}}\n\n{t}\n\\end{{frame}}", True
+
 
 def latex(_, args):
-    scope = " ".join(args).replace("}\\\\", "}")
+    scope = " ".join(args).replace("}\\\\", "}").replace("}\\", "}")
     res = re.findall(r"(?<={)(.*)(?=})", scope)
     s = "".join(res).strip()
     return s, True
@@ -422,6 +427,16 @@ def section(name, args):
 
     return f"\\{name}{{{string}}}{label}\n", True
 
+def block(_, args):
+    string, params, _ = getparams(args, False)
+
+    c = exec_scope(resolve_scope(string))
+
+    p = ""
+    if params != "":
+        p = f"{{{params}}}"
+
+    return f"\\begin{{block}}{p}\n{c}\n\\end{{block}}", True
 
 def figure(_, args):
     try_import("float")
@@ -592,6 +607,9 @@ def simpleassignnewline(name, args):
 items = {
     "class": documentclass,
     "document": document,
+    "frame": frame,
+    "usetheme": simpleassignnewline,
+    "usecolortheme": simpleassignnewline,
     "latex": latex,
     "math": math,
     "component": custom_component,
@@ -605,6 +623,7 @@ items = {
     "section": section,
     "subsection": section,
     "subsubsection": section,
+    "block": block,
     "import": _import,
     "use": use,
     "env": setenv,
@@ -615,8 +634,12 @@ items = {
     "frac": frac,
     "tableofcontents": itselfnewline,
     "maketitle": itselfnewline,
+    "titlepage": itselfnewline,
     "newpage": itselfnewline,
     "title": simpleassignnewline,
+    "subtitle": simpleassignnewline,
+    "frametitle": simpleassignnewline,
+    "institute": simpleassignnewline,
     "author": simpleassignnewline,
     "date": simpleassignnewline,
     "list": _enumerate,
